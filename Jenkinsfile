@@ -27,7 +27,7 @@ pipeline {
 
          stage("Sonarqube Analysis "){
             steps{
-                withSonarQubeEnv('sonar-server') {
+                withSonarQubeEnv('sonar-qube') {
                     sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Game-2048 \
                     -Dsonar.sources=. \
                     -Dsonar.projectKey=Game-2048 '''

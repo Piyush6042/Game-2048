@@ -1,3 +1,12 @@
+let express = require('express');
+
+let app1 = express();  // Compliant
+app1.disable("x-powered-by");
+
+let helmet = require("helmet");
+let app2 = express(); // Compliant
+app2.use(helmet.hidePoweredBy());
+
 const express = require('express')
 const app = express()
 const port = 4000

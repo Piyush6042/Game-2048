@@ -1,10 +1,5 @@
 FROM node:14-alpine3.12
 
-RUN addgroup -S nonroot \
-    && adduser -S nonroot -G nonroot
-
-USER nonroot
-
 # Set working directory to backend
 WORKDIR /backend
 

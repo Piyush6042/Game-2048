@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: full-stack-app-deployment
+  name: game-2048-deployment
   labels:
-    app: full-stack-app
+    app: game-2048-app
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: full-stack-app
+      app: game-2048-app
   template:
     metadata:
       labels:
-        app: full-stack-app
+        app: game-2048-app
     spec:
       containers:
-        - name: full-stack-app
-          image: nahid0002/node-full-stack-app:latest
+        - name: game-2048-app
+          image: piyush6042/game-2048:latest
           ports:
             - containerPort: 4000
           imagePullPolicy: Always
@@ -25,10 +25,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: full-stack-app-svc
+  name: game-2048-app-svc
 spec:
   selector:
-    app: full-stack-app
+    app: game-2048-app
   ports:
     - protocol: TCP
       port: 4000

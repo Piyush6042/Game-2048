@@ -30,11 +30,10 @@ pipeline {
                 withSonarQubeEnv('sonar-qube') {
                     sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Game-2048 \
                     -Dsonar.sources=. \
-                    -Dsonar.projectKey=Game-2048 '''
+                    -Dsonar.projectKey=2048-Game '''
                 }
             }
         }
-
         stage("SonarQube Quality Gate"){
        
              steps {
@@ -74,73 +73,36 @@ pipeline {
                steps{
                    
                 echo 'login into docker hub and pushing image....'
-                withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]){
-                     sh "docker build -t node-full-stack-app:latest -f backend/Dockerfile ."
-                     sh "docker tag node-full-stack-app ${env.dockerHubUser}/node-full-stack-app:latest"
-                     sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-                     sh "docker push ${env.dockerHubUser}/node-full-stack-app:latest"
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'dockerhubPassword', usernameVariable: 'dockerhubUser')]){
+                     sh "docker build -t game-2048:latest -f backend/Dockerfile ."
+                     sh "docker tag game-2048 ${env.dockerhubUser}/game-2048:latest"
+                     sh "docker login -u ${env.dockerhubUser} -p ${env.dockerhubPassword}"
+                     sh "docker push ${env.dockerhubUser}/game-2048:latest"
 
 
                }
            }
-         }
+        }
 
 
          stage("TRIVY Docker Scan"){
             steps{
 
-                withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]){
+                withCredentials([usernamePassword(credentialsId: 'dockerhub', passwordVariable: 'dockerhubPassword', usernameVariable: 'dockerhubUser')]){
                      
-                    sh "trivy image ${env.dockerHubUser}/node-full-stack-app:latest" 
+                    sh "trivy image ${env.dockerhubUser}/game-2048:latest" 
 
                }
-                
             }
         }
-
-         stage("Deploy to Docker Container"){
-            steps{
-                sh " docker run -d --name node-full-stack-app -p 4000:4000 nahid0002/node-full-stack-app:latest "
-            }
-        }
-
-        stage('Deploy To Kubernetes') {
+        
+         stage('Deploy to Kubernetes Cluster') {
             steps {
-                script {
-                   
-                    withKubeConfig([credentialsId: 'K8s', serverUrl: '']) {
+                script {withKubeConfig([credentialsId: 'K8', serverUrl: '']) {
                         sh ('kubectl apply -f deployment.yaml')
                     }
                 }
             }
         }
-
-        stage('Clean up Containers') {   //if container runs it will stop and remove this block
-          steps {
-           script {
-             try {
-                sh 'docker stop node-full-stack-app'
-                sh 'docker rm node-full-stack-app'
-                } catch (Exception e) {
-                  echo "Container node-full-stack-app not found, moving to next stage"  
-                }
-            }
-          }
-        }
-     
     }
-
-
- post {
-            always {
-        emailext attachLog: true,
-            subject: "'${currentBuild.result}'",
-            body: "Project: ${env.JOB_NAME}<br/>" +
-                "Build Number: ${env.BUILD_NUMBER}<br/>" +
-                "URL: ${env.BUILD_URL}<br/>",
-            to: 'nahidkishore99@gmail.com',
-            attachmentsPattern: 'trivy.txt'
-        }
-        }
-
 }
